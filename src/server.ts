@@ -19,6 +19,9 @@ app.use(helmet());
 
 // 1.2 CORS (lock down to specific origin in production)
 app.use(cors({
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  methods: ['POST'],
   origin: process.env.NODE_ENV === 'production'
     ? process.env.CORS_ORIGIN
     : '*'
@@ -63,17 +66,20 @@ app.post(
       .isEmail().withMessage('Valid email required'),
     body('contact').notEmpty().withMessage('Missing contact method'),
     body('timeSlot').notEmpty().withMessage('Missing time slot'),
-    body('purpose').notEmpty().withMessage('Missing purpose'),
+    body('purpose').optional({ checkFalsy: true })
+      .trim()
+      .isLength({ max: 1000 }).withMessage('Purpose max length is 1000 chars'),
     body('timeframe').notEmpty().withMessage('Missing timeframe'),
     body('weeklyTime').notEmpty().withMessage('Missing weekly time'),
     body('experience')
       .optional({ checkFalsy: true })
       .trim()
-      .isLength({ max: 1000 }).withMessage('Message max length is 1000 chars'),
+      .isLength({ max: 1000 }).withMessage('Experience max length is 1000 chars'),
     body('termsAgreed').isBoolean().withMessage('Terms agreement is required'),
-    body('ipAddress').optional({ nullable: true, checkFalsy: true }),
-    body('browserInfo').optional({ nullable: true, checkFalsy: true }),
-    body('timeZone').optional({ nullable: true, checkFalsy: true })
+    body('ipAddress').optional({ nullable: true }),
+    body('browserInfo').optional({ nullable: true }),
+    body('timeZone').optional({ nullable: true }),
+    body('submissionTime').optional({ nullable: true })
   ],
   async (req: Request, res: Response) => {
     // 3.1 Check validation errors
@@ -96,7 +102,8 @@ app.post(
       // recaptchaToken,
       ipAddress,
       browserInfo,
-      timeZone
+      timeZone,
+      submissionTime
     } = req.body;
 
     // 3.2 Verify reCAPTCHA
@@ -131,7 +138,7 @@ app.post(
         IP: ${ipAddress} |
         Browser: ${browserInfo} |
         Time Zone: ${timeZone} |
-        Sent: ${new Date().toISOString()}
+        Sent: ${submissionTime ? new Date(submissionTime).toLocaleString() : new Date().toLocaleString()}
       </small></p>
     `;
 
