@@ -21,7 +21,7 @@ app.use(helmet());
 app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
-  methods: ['POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   origin: process.env.NODE_ENV === 'production'
     ? process.env.CORS_ORIGIN
     : '*'
