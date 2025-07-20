@@ -9,6 +9,8 @@ import dotenv from 'dotenv';
 
 import { requireApiKey } from './middleware/auth';
 
+console.log('process.env.CORS_ORIGIN!', process.env.CORS_ORIGIN!);
+
 dotenv.config();
 const app = express();
 
@@ -18,12 +20,8 @@ const app = express();
 app.use(helmet());
 
 // 1.2 CORS: allow only your frontend + handle OPTIONS preflight
-const FRONTEND = process.env.NODE_ENV === 'production'
-  ? process.env.CORS_ORIGIN!
-  : '*';
-
 app.use(cors({
-  origin: FRONTEND,
+  origin: [process.env.CORS_ORIGIN!],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false
