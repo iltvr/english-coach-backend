@@ -18,29 +18,32 @@ const app = express();
 app.use(helmet());
 
 // 1.2 CORS (lock down to specific origin in production)
-const dynamicCorsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps)
-    if (!origin || process.env.ALLOWED_ORIGINS?.split(',').includes(origin)) {
-      return callback(null, true);
-    }
-    const error = new Error('CORS policy violation');
-    error.name = 'CorsError';
-    return callback(error);
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'https://english-coach.online',
+    'https://www.english-coach.online',
+    'https://english-coach.pages.dev',
+  ],
+  credentials: true,
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
 
-app.use(cors(dynamicCorsOptions));
+app.use(cors(corsOptions));
 
+// 1.3 JSON body parsing
+app.use(express.json());
 
 // Enabling CORS Pre-Flight
 app.options('/api/send', cors());
 
-// 1.3 JSON body parsing
-app.use(express.json());
+// Example route to test CORS
+app.get('/api/healthcheck', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
 
 // 1.4 Rate limiting (per IP)
 app.use('/api/send', rateLimit({
